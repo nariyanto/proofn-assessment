@@ -88,3 +88,12 @@ func (d *User) Insert(user models.User) (models.User, error) {
 
 	return user, nil
 }
+
+func (d *User) Update(user models.User) (models.User, error) {
+	err := db.Update(&user)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}

@@ -51,3 +51,9 @@ func (o *User) DeleteUsers() error {
 	err := o.Dao.DeleteAll()
 	return err
 }
+
+func (o *User) UpdateUser(user models.User) (models.User, error) {
+	user, err := o.Dao.Update(user)
+
+	return user, err
+}

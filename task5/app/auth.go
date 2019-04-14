@@ -69,7 +69,7 @@ func Signup(c echo.Context, vault client.Vault) error {
 		return c.JSONPretty(result.Status, result, "  ")
 	}
 
-	if len(user.Name) <= 0 || len(user.Email) <= 0 || len(user.Password) <= 0 {
+	if len(user.TokenVerification) <= 0 || len(user.Email) <= 0 {
 		result = helper.CreateErrorResponse(http.StatusBadRequest, "Please fill all required field.", nil)
 		return c.JSONPretty(result.Status, result, "  ")
 	}
@@ -174,13 +174,63 @@ func Login(c echo.Context, vault client.Vault) error {
 		return c.JSONPretty(result.Status, result, "  ")
 	}
 
-	// user.Token = t
-	// Database.Save(&user)
+	duser.Token = t
+	_, err = authService.UpdateUser(duser)
+	if err != nil {
+		result = helper.CreateErrorResponse(http.StatusInternalServerError, "Something Wrong", err)
+		return c.JSONPretty(result.Status, result, "  ")
+	}
 
 	result = helper.CreateSuccessResponse(Data{
 		AccessToken: "Bearer " + t,
-		User:        user,
+		User:        duser,
 	}, "success")
 
+	return c.JSONPretty(result.Status, result, "  ")
+}
+
+func Verify(c echo.Context, vault client.Vault) error {
+	initAuth(vault)
+
+	var user models.User
+	var result helper.BaseResponse
+
+	var bodyBytes []byte
+	if c.Request().Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(c.Request().Body)
+	}
+	c.Request().Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+
+	if err := json.NewDecoder(c.Request().Body).Decode(&user); err != nil {
+		result = helper.CreateErrorResponse(http.StatusBadRequest, "Invalid request payload.", nil)
+		return c.JSONPretty(result.Status, result, "  ")
+	}
+
+	if len(user.Email) <= 0 || len(user.TokenVerification) <= 0 {
+		result = helper.CreateErrorResponse(http.StatusBadRequest, "Please fill all required field.", nil)
+		return c.JSONPretty(result.Status, result, "  ")
+	}
+
+	duser, err := authService.GetUsersByEmail(user)
+	if err != nil {
+		result = helper.CreateErrorResponse(http.StatusBadRequest, "Email not found.", nil)
+		return c.JSONPretty(result.Status, result, "  ")
+	}
+
+	if user.TokenVerification != duser.TokenVerification {
+		result = helper.CreateErrorResponse(http.StatusBadRequest, "Invalid verification code", nil)
+		return c.JSONPretty(result.Status, result, "  ")
+	}
+
+	duser.Status = 1
+	duser.TokenVerification = ""
+
+	user, err = authService.UpdateUser(duser)
+	if err != nil {
+		result = helper.CreateErrorResponse(http.StatusInternalServerError, "Something Wrong", err)
+		return c.JSONPretty(result.Status, result, "  ")
+	}
+
+	result = helper.CreateSuccessResponse(user, "success")
 	return c.JSONPretty(result.Status, result, "  ")
 }

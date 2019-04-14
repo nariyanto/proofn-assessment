@@ -101,6 +101,9 @@ func main() {
 	r.POST("/auth/signin", func(c echo.Context) error {
 		return app.Login(c, vault)
 	})
+	r.POST("/auth/verify", func(c echo.Context) error {
+		return app.Verify(c, vault)
+	})
 
 	//Health Check Routes
 	h := health.NewHandler()
