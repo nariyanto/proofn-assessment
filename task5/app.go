@@ -10,10 +10,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	"proofn/task5/app"
 	"proofn/task5/client"
 	"proofn/task5/config"
-	"proofn/task5/dao"
-	"proofn/task5/service"
 
 	"github.com/dimiro1/health"
 	"github.com/dimiro1/health/db"
@@ -22,17 +21,6 @@ import (
 	"github.com/labstack/echo/middleware"
 	_ "github.com/lib/pq"
 )
-
-var orderService = service.Order{}
-
-func AllOrdersEndpoint(c echo.Context) error {
-	// User ID from path `users/:id`
-	orders, err := orderService.GetOrders()
-	if err != nil {
-		return err
-	}
-	return c.JSON(http.StatusOK, orders)
-}
 
 func main() {
 	log.Println("Starting server initialization")
@@ -87,21 +75,6 @@ func main() {
 		go vault.RenewSecret(secret)
 	}
 
-	//DAO config
-	var orderDao = dao.Order{
-		Host:     config.Database.Host,
-		Port:     config.Database.Port,
-		Database: config.Database.Name,
-		User:     config.Database.Username,
-		Password: config.Database.Password,
-	}
-
-	//Check our DAO connection
-	err = orderDao.Connect()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	//Get our TLS cert from Vault
 	cert, err := vault.GetCertificate(fmt.Sprintf("%s/issue/%s", config.Vault.Pki.Mount, config.Vault.Pki.Role), config.Vault.Pki.CN)
 	if err != nil {
@@ -118,19 +91,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	//Create service
-	orderService.Vault = &vault
-	orderService.Dao = &orderDao
-	orderService.Encyrption.Key = config.Vault.Transit.Key
-	orderService.Encyrption.Mount = config.Vault.Transit.Mount
-
 	//Router
 	r := echo.New()
 
 	//API Routes
-	r.GET("/api/orders", AllOrdersEndpoint)
-	// r.POST("/api/orders", CreateOrderEndpoint)
-	// r.DELETE("/api/orders", DeleteOrdersEndpoint)
+	r.POST("/auth/signup", func(c echo.Context) error {
+		return app.Signup(c, vault)
+	})
 
 	//Health Check Routes
 	h := health.NewHandler()

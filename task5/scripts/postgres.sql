@@ -7,7 +7,7 @@ CREATE TABLE "users" (
     "token" text NOT NULL,
     "token_verification" varchar(20) DEFAULT NULL,
     "status" int2 DEFAULT 0,
-    "date_created" timestamp default now()
+    "created_date" timestamp default now()
 );
 ALTER TABLE "users" OWNER TO "postgres";
 
@@ -17,7 +17,7 @@ CREATE TABLE "messages" (
   "sender_id" bigint NOT NULL,
   "receiver_id" bigint NOT NULL,
   "content" text NOT NULL,
-  "date_created" timestamp default now(),
+  "created_date" timestamp default now(),
   "receiver_status" int2 DEFAULT 0,
   "sender_status" int2 DEFAULT 0
 )
