@@ -98,6 +98,9 @@ func main() {
 	r.POST("/auth/signup", func(c echo.Context) error {
 		return app.Signup(c, vault)
 	})
+	r.POST("/auth/signin", func(c echo.Context) error {
+		return app.Login(c, vault)
+	})
 
 	//Health Check Routes
 	h := health.NewHandler()

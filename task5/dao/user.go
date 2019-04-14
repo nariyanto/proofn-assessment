@@ -37,16 +37,14 @@ func (d *User) Close() error {
 	return err
 }
 
-func (d *User) FindByEmail(user models.User) ([]models.User, error) {
-	var users []models.User
-
+func (d *User) FindByEmail(user models.User) (models.User, error) {
 	//Go get the users
-	err := db.Model(&users).Where("email = ?", user.Email).Select()
+	err := db.Model(&user).Where("email = ?", user.Email).Select()
 	if err != nil {
-		return []models.User{}, err
+		return user, err
 	}
 
-	return users, nil
+	return user, nil
 }
 
 func (d *User) FindAll() ([]models.User, error) {

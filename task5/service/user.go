@@ -14,19 +14,14 @@ type User struct {
 	Encyrption Transit
 }
 
-func (o *User) GetUsersByEmail(user models.User) (models.UsersResp, error) {
-	var eUsers []models.User
+func (o *User) GetUsersByEmail(user models.User) (models.User, error) {
 
-	eUsers, err := o.Dao.FindByEmail(user)
+	user, err := o.Dao.FindByEmail(user)
 	if err != nil {
-		return models.UsersResp{}, err
+		return models.User{}, err
 	}
 
-	//Create our response payload
-	usersResp := models.UsersResp{}
-	usersResp.Users = eUsers
-
-	return usersResp, nil
+	return user, nil
 }
 
 func (o *User) GetUsers() (models.UsersResp, error) {

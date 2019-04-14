@@ -3,10 +3,20 @@ package helper
 import (
 	"math/rand"
 
+	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 )
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+// JwtCustomClaims - are custom claims extending default ones.
+type JwtCustomClaims struct {
+	ID       int64  `json:"id"`
+	Password string `json:"password"`
+	Name     string `json:"Name"`
+	Email    string `json:"email"`
+	jwt.StandardClaims
+}
 
 func RandStringBytes(n int) string {
 	b := make([]byte, n)
